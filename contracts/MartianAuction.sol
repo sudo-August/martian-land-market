@@ -8,10 +8,10 @@ contract SimpleAuction {
     // absolute unix timestamps (seconds since 1970-01-01)
     // or time periods in seconds.
     address payable public beneficiary;
-    uint public auctionEndTime;
+    //uint public auctionEndTime;  !! removing biddingTime functionality
 
     // Current state of the auction.
-    address public highestBidder;
+    address payable public highestBidder; // !! Made payable to make it easier to interact with by MartianMarket.sol
     uint public highestBid;
 
     // Allowed withdrawals of previous bids
@@ -19,7 +19,7 @@ contract SimpleAuction {
 
     // Set to true at the end, disallows any change.
     // By default initialized to `false`.
-    bool ended;
+    bool public ended; // !! made public so that it could be interacted with by MartianMarket.sol
 
     // Events that will be emitted on changes.
     event HighestBidIncreased(address bidder, uint amount);
@@ -34,11 +34,11 @@ contract SimpleAuction {
     /// seconds bidding time on behalf of the
     /// beneficiary address `_beneficiary`.
     constructor(
-        uint _biddingTime,
+        //uint _biddingTime,  !! removing biddingTime functionality
         address payable _beneficiary
     ) public {
         beneficiary = _beneficiary;
-        auctionEndTime = now + _biddingTime;
+        //auctionEndTime = now + _biddingTime;   !! removing biddingTime functionality
     }
 
     /// Bid on the auction with the value sent
@@ -55,7 +55,7 @@ contract SimpleAuction {
         // Revert the call if the bidding
         // period is over.
         require(
-            now <= auctionEndTime,
+            !ended,
             "Auction already ended."
         );
 
@@ -114,8 +114,10 @@ contract SimpleAuction {
         // external contracts.
 
         // 1. Conditions
-        require(now >= auctionEndTime, "Auction not yet ended.");
+        //require(now >= auctionEndTime, "Auction not yet ended.");    !! removing biddingTime functionality
         require(!ended, "auctionEnd has already been called.");
+
+        require(msg.sender == beneficiary, "You are not the person who created this auction!");
 
         // 2. Effects
         ended = true;
